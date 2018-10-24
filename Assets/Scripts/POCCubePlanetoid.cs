@@ -89,17 +89,17 @@ public class POCCubePlanetoid : MonoBehaviour
 
         for (int thisFaceIdx = 0; thisFaceIdx < 6; thisFaceIdx++)
         {
-            Vector3Int neighborPos = pos + faceTemplates[thisFaceIdx].normal;
+            //Vector3Int neighborPos = pos + faceTemplates[thisFaceIdx].normal;
 
-            int neighborFaceIdx;
-            if ((thisFaceIdx % 2) == 0)
-            {
-                neighborFaceIdx = thisFaceIdx + 1;
-            }
-            else
-            {
-                neighborFaceIdx = thisFaceIdx - 1;
-            }
+            //int neighborFaceIdx;
+            //if ((thisFaceIdx % 2) == 0)
+            //{
+            //    neighborFaceIdx = thisFaceIdx + 1;
+            //}
+            //else
+            //{
+            //    neighborFaceIdx = thisFaceIdx - 1;
+            //}
 
             VoxelData neighborData = GetVoxel(pos + faceTemplates[thisFaceIdx].normal);
 
