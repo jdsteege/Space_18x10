@@ -42,7 +42,7 @@ public class ChunkMesh : MonoBehaviour
         mesh = meshFilter.mesh;
         mesh.MarkDynamic();
         meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        meshRenderer.material = material;
+        meshRenderer.material = FindObjectOfType<GameMaster>().planetMaterial;
 
         gameObject.AddComponent<MeshCollider>();
 
@@ -79,32 +79,42 @@ public class ChunkMesh : MonoBehaviour
         mesh.SetTriangles(triangles, 0);
     }
 
-    public void MarkVoxelForRefresh(Coord3 localPos)
+    public void MarkVoxelForRefresh(Coord3 chunkPos)
     {
-        if (batchNumbers[localPos.x, localPos.y, localPos.z] != currentBatchNumber)
+        if (batchNumbers[chunkPos.x, chunkPos.y, chunkPos.z] != currentBatchNumber)
         {
-            batchNumbers[localPos.x, localPos.y, localPos.z] = currentBatchNumber;
-            currentQueue.Enqueue(localPos);
+            batchNumbers[chunkPos.x, chunkPos.y, chunkPos.z] = currentBatchNumber;
+            currentQueue.Enqueue(chunkPos);
         }
     }
 
-    private bool IsInCurrentBatch(Coord3 localPos)
+    private bool IsInCurrentBatch(Coord3 chunkPos)
     {
-        if (!dataController.IsInRange(localPos))
+        if (!dataController.IsInRangeChunk(chunkPos))
         {
             return true;
         }
 
-        return (batchNumbers[localPos.x, localPos.y, localPos.z] == currentBatchNumber);
+        return (batchNumbers[chunkPos.x, chunkPos.y, chunkPos.z] == currentBatchNumber);
     }
 
     private void Update()
     {
         DoBatchRefresh();
+
+        //if (vertices.Count < 4)
+        //{
+        //    meshRenderer.enabled = false;
+        //}
     }
 
     public void DoBatchRefresh()
     {
+        if (isRefreshing || currentQueue.Count == 0)
+        {
+            return;
+        }
+
         StartCoroutine(BatchRefreshCR());
     }
 
@@ -119,8 +129,8 @@ public class ChunkMesh : MonoBehaviour
 
         while (currentQueue.Count > 0)
         {
-            Coord3 localPos = currentQueue.Dequeue();
-            RefreshVoxelMesh(localPos);
+            Coord3 chunkPos = currentQueue.Dequeue();
+            RefreshVoxelMesh(chunkPos);
 
             // Causes a bug occasionally where faces get lost
             //			if (FrameLimit.IsOverLimit ()) {
@@ -135,13 +145,14 @@ public class ChunkMesh : MonoBehaviour
         isRefreshing = false;
     }
 
-    private void RefreshVoxelMesh(Coord3 localPos)
+    private void RefreshVoxelMesh(Coord3 chunkPos)
     {
-        VoxelData thisData = dataController.GetVoxel(localPos);
+        Coord3 localPos = dataController.ChunkToLocal(chunkPos);
+        VoxelData thisData = dataController.voxelContainer.GetVoxel(localPos);
 
         for (int thisFaceIdx = 0; thisFaceIdx < 6; thisFaceIdx++)
         {
-            Coord3 neighborPos = localPos + faceTemplates[thisFaceIdx].normal;
+            Coord3 neighborPos = chunkPos + faceTemplates[thisFaceIdx].normal;
 
             int neighborFaceIdx;
             if ((thisFaceIdx % 2) == 0)
@@ -153,9 +164,9 @@ public class ChunkMesh : MonoBehaviour
                 neighborFaceIdx = thisFaceIdx - 1;
             }
 
-            VoxelData neighborData = dataController.GetVoxel(localPos + faceTemplates[thisFaceIdx].normal);
+            VoxelData neighborData = dataController.voxelContainer.GetVoxel(localPos + faceTemplates[thisFaceIdx].normal);
 
-            RefreshFace(localPos, thisFaceIdx, thisData, neighborData);
+            RefreshFace(chunkPos, thisFaceIdx, thisData, neighborData);
 
             if (!IsInCurrentBatch(neighborPos))
             {
@@ -165,16 +176,16 @@ public class ChunkMesh : MonoBehaviour
         }
     }
 
-    private void RefreshFace(Coord3 thisLocalPos, int thisFaceIdx, VoxelData thisData, VoxelData neighborData)
+    private void RefreshFace(Coord3 thisChunkPos, int thisFaceIdx, VoxelData thisData, VoxelData neighborData)
     {
-        if (!dataController.IsInRange(thisLocalPos))
+        if (!dataController.IsInRangeChunk(thisChunkPos))
         {
             return;
         }
 
-        int maStart = meshArrayStarts[thisLocalPos.x, thisLocalPos.y, thisLocalPos.z, thisFaceIdx];
+        int maStart = meshArrayStarts[thisChunkPos.x, thisChunkPos.y, thisChunkPos.z, thisFaceIdx];
 
-        if (thisData.Def.color.a > 0 && neighborData.Def.color.a < 255 && (thisLocalPos.y > 0 || faceTemplates[thisFaceIdx].normal.y >= 0))
+        if (thisData.Def.color.a > 0 && neighborData.Def.color.a < 255 && (thisChunkPos.y > 0 || faceTemplates[thisFaceIdx].normal.y >= 0))
         {
             // Draw face
 
@@ -183,7 +194,7 @@ public class ChunkMesh : MonoBehaviour
             if (maStart < 0)
             {
                 maStart = GetAvailableMeshArrayStart();
-                meshArrayStarts[thisLocalPos.x, thisLocalPos.y, thisLocalPos.z, thisFaceIdx] = maStart;
+                meshArrayStarts[thisChunkPos.x, thisChunkPos.y, thisChunkPos.z, thisFaceIdx] = maStart;
             }
 
             for (int idxOffset = 0; idxOffset < 4; idxOffset++)
@@ -191,12 +202,12 @@ public class ChunkMesh : MonoBehaviour
                 int meshArrayIdx = maStart + idxOffset;
 
                 //
-                vertices[meshArrayIdx] = thisLocalPos + curFace.vertices[idxOffset];
+                vertices[meshArrayIdx] = thisChunkPos + curFace.vertices[idxOffset];
                 normals[meshArrayIdx] = curFace.normal;
 
                 // Checkerboard pattern
                 Color32 color = thisData.Def.color;
-                if ((thisLocalPos.x + thisLocalPos.y + thisLocalPos.z) % 2 == 0)
+                if ((thisChunkPos.x + thisChunkPos.y + thisChunkPos.z) % 2 == 0)
                 {
                     color = Color32.Lerp(color, Color.black, (1f / 30f));
                 }
@@ -217,7 +228,7 @@ public class ChunkMesh : MonoBehaviour
             else
             {
                 availableArrayStarts.Enqueue(maStart);
-                meshArrayStarts[thisLocalPos.x, thisLocalPos.y, thisLocalPos.z, thisFaceIdx] = -1;
+                meshArrayStarts[thisChunkPos.x, thisChunkPos.y, thisChunkPos.z, thisFaceIdx] = -1;
 
                 for (int idxOffset = 0; idxOffset < 4; idxOffset++)
                 {

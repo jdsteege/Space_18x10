@@ -29,6 +29,20 @@ public class ChunkData : MonoBehaviour
 
         meshController = this.gameObject.AddComponent<ChunkMesh>();
         meshController.Init();
+
+
+        for (int i = 0; i < ChunkWidth; i++)
+        {
+            for (int j = 0; j < ChunkWidth; j++)
+            {
+                for (int k = 0; k < ChunkWidth; k++)
+                {
+                    Coord3 chunkPos = new Coord3(i, j, k);
+
+                    meshController.MarkVoxelForRefresh(chunkPos);
+                }
+            }
+        }
     }
 
     public void MarkAsChanged()
@@ -56,39 +70,60 @@ public class ChunkData : MonoBehaviour
         isNatural = false;
     }
 
-    public bool IsInRange(Coord3 localPos)
+    public Coord3 ChunkToLocal(Coord3 chunkPos)
     {
-        return localPos.IsInRange(chunkLocalOrigin, chunkLocalOrigin - Coord3.one + (Coord3.one * ChunkWidth));
+        return chunkPos + chunkLocalOrigin;
+    }
+
+    public Coord3 LocalToChunk(Coord3 localPos)
+    {
+        return localPos - chunkLocalOrigin;
+    }
+
+    public bool IsInRangeLocal(Coord3 localPos)
+    {
+        return IsInRangeChunk(LocalToChunk(localPos));
+    }
+
+    public bool IsInRangeChunk(Coord3 chunkPos)
+    {
+        return chunkPos.IsInRange(Coord3.zero, (Coord3.one * ChunkWidth) - Coord3.one);
     }
 
     public VoxelData GetVoxel(Coord3 localPos)
     {
-        if (!IsInRange(localPos))
+        if(chunkId.x == 1)
+        {
+            int a = 1;
+            a += 1;
+        }
+
+        if (!IsInRangeLocal(localPos))
         {
             return VoxelData.empty;
         }
 
         if (isNatural)
         {
-            return new VoxelData(NaturalVoxel(localPos));
+            return new VoxelData(NaturalVoxelID(localPos));
         }
         else
         {
-            Coord3 chunkPos = localPos - chunkLocalOrigin;
+            Coord3 chunkPos = LocalToChunk(localPos);
             return voxels[chunkPos.x, chunkPos.y, chunkPos.z];
         }
     }
 
-    public VoxelTypeID NaturalVoxel(Coord3 localPos)
+    public VoxelTypeID NaturalVoxelID(Coord3 localPos)
     {
-        if (!IsInRange(localPos))
+        if (!IsInRangeLocal(localPos))
         {
             return VoxelTypeID.Empty;
         }
 
         VoxelTypeID result = VoxelTypeID.Empty;
 
-        if (Coord3.Distance(voxelContainer.LocalCenter, localPos) < (voxelContainer.localMaxPos.x / 2f))
+        if (Coord3.Distance(voxelContainer.LocalCenter, localPos) < ((voxelContainer.localMaxPos.x / 2f) - 1))
         {
             result = VoxelTypeID.Rock;
         }
@@ -99,7 +134,7 @@ public class ChunkData : MonoBehaviour
     public void SetVoxelData(Coord3 localPos, VoxelData voxel)
     {
 
-        if (!IsInRange(localPos))
+        if (!IsInRangeLocal(localPos))
         {
             return;
         }
@@ -115,7 +150,7 @@ public class ChunkData : MonoBehaviour
 
         voxels[chunkPos.x, chunkPos.y, chunkPos.z] = voxel;
 
-        //meshController.MarkVoxelForRefresh(pos);
+        meshController.MarkVoxelForRefresh(chunkPos);
     }
 
 }

@@ -6,10 +6,13 @@ public class VoxelContainer : MonoBehaviour
 {
 
     public VoxelCaster caster = new VoxelCaster();
+    public int sizeX;
+    public int sizeY;
+    public int sizeZ;
 
     private ChunkData[,,] chunks;
     public Coord3 localMaxPos;
-    private bool isLoaded;
+    //private bool isLoaded;
 
     public Coord3 WorldOrigin
     {
@@ -22,12 +25,12 @@ public class VoxelContainer : MonoBehaviour
 
     private void Start()
     {
-        Init(new Coord3(4, 4, 4));
+        Init(new Coord3(sizeX, sizeY, sizeZ));
     }
 
     void Init(Coord3 sizeInChunks)
     {
-        isLoaded = false;
+        //isLoaded = false;
 
         localMaxPos = (sizeInChunks * ChunkData.ChunkWidth) - Coord3.one;
 
@@ -50,7 +53,7 @@ public class VoxelContainer : MonoBehaviour
             }
         }
 
-        isLoaded = true;
+        //isLoaded = true;
     }
 
     public bool IsInRange(Coord3 localPos)

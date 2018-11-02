@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class GameMaster : MonoBehaviour {
 
+    public Material planetMaterial;
+
     void Awake ()
     {
 
