@@ -565,7 +565,7 @@ public static class Util
         return 0;
     }
 
-    public static int CompareMagnitude(Vector2Int c, float x)
+    public static int CompareMagnitude(Coord2 c, float x)
     {
         float result = (c.x * c.x + c.y * c.y) - (x * x);
 
@@ -682,12 +682,12 @@ public static class Util
         return result.ToArray();
     }
 
-    public static int TaxiDistance(Vector2Int a, Vector2Int b)
+    public static int TaxiDistance(Coord2 a, Coord2 b)
     {
         return Util.Abs(a.x - b.x) + Util.Abs(a.y - b.y);
     }
 
-    public static int SquareDistance(Vector2Int a, Vector2Int b)
+    public static int SquareDistance(Coord2 a, Coord2 b)
     {
         return Mathf.Max(Util.Abs(a.x - b.x), Util.Abs(a.y - b.y));
     }

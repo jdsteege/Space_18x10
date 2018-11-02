@@ -7,16 +7,16 @@ public class MeshManager : MonoBehaviour
 
     public static readonly int maxVertCount = 32000; // 65000;
 
-	public VoxelContainer world;
+	public VoxelContainer voxelContainer;
 	public Material material;
 
-	private Coord2[,,,] meshArrayStarts = new Coord2[VoxelContainer.sizeXZ, VoxelContainer.sizeY, VoxelContainer.sizeXZ, 6];
+    private Coord2[,,,] meshArrayStarts;// = new Coord2[VoxelContainer.sizeXZ, VoxelContainer.sizeY, VoxelContainer.sizeXZ, 6];
 
 	List<VoxelMesh> meshChildren = new List<VoxelMesh> ();
 
 	private int currentBatchNumber = 1;
-	private int[,,] batchNumbers = new int[VoxelContainer.sizeXZ, VoxelContainer.sizeY, VoxelContainer.sizeXZ];
-	private Queue<Coord3> currentQueue = new Queue<Coord3> ();
+	private int[,,] batchNumbers;// = new int[VoxelContainer.sizeXZ, VoxelContainer.sizeY, VoxelContainer.sizeXZ];
+    private Queue<Coord3> currentQueue = new Queue<Coord3> ();
 	
 	bool isRefreshing = false;
 
@@ -49,7 +49,7 @@ public class MeshManager : MonoBehaviour
 
 	private bool IsInCurrentBatch (Coord3 pos)
 	{
-		if (!world.IsInRange (pos)) {
+		if (!voxelContainer.IsInRange (pos)) {
 			return true;
 		}
 
@@ -90,7 +90,7 @@ public class MeshManager : MonoBehaviour
 
 	private void RefreshVoxelMesh (Coord3 pos)
 	{
-		VoxelData thisData = world.GetVoxel (pos);
+		VoxelData thisData = voxelContainer.GetVoxel (pos);
 
 		for (int thisFaceIdx = 0; thisFaceIdx < 6; thisFaceIdx++) {
 			Coord3 neighborPos = pos + faceTemplates [thisFaceIdx].normal;
@@ -102,7 +102,7 @@ public class MeshManager : MonoBehaviour
 				neighborFaceIdx = thisFaceIdx - 1;
 			}
 
-			VoxelData neighborData = world.GetVoxel (pos + faceTemplates [thisFaceIdx].normal);
+			VoxelData neighborData = voxelContainer.GetVoxel (pos + faceTemplates [thisFaceIdx].normal);
 
 			RefreshFace (pos, thisFaceIdx, thisData, neighborData);
 
@@ -115,13 +115,13 @@ public class MeshManager : MonoBehaviour
 
 	private void RefreshFace (Coord3 thisPos, int thisFaceIdx, VoxelData thisData, VoxelData neighborData)
 	{
-		if (!world.IsInRange (thisPos)) {
+		if (!voxelContainer.IsInRange (thisPos)) {
 			return;
 		}
 
 		Coord2 maStart = meshArrayStarts [thisPos.x, thisPos.y, thisPos.z, thisFaceIdx];
 
-		if (thisData.def.color.a > 0 && neighborData.def.color.a < 255 && (thisPos.y > 0 || faceTemplates [thisFaceIdx].normal.y >= 0)) {
+		if (thisData.Def.color.a > 0 && neighborData.Def.color.a < 255 && (thisPos.y > 0 || faceTemplates [thisFaceIdx].normal.y >= 0)) {
 			// Draw face
 
 			FaceTemplate curFace = faceTemplates [thisFaceIdx];
@@ -141,7 +141,7 @@ public class MeshManager : MonoBehaviour
 				curMesh.normals [meshArrayIdx] = curFace.normal;
 
 				// Checkerboard pattern
-				Color32 color = thisData.def.color;
+				Color32 color = thisData.Def.color;
 				if ((thisPos.x + thisPos.y + thisPos.z) % 2 == 0) {
 					color = Color32.Lerp (color, Color.black, (1f / 30f));
 				}

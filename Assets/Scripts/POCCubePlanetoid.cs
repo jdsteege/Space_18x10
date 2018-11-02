@@ -39,7 +39,7 @@ public class POCCubePlanetoid : MonoBehaviour
                     }
                     else
                     {
-                        blocks[i, j, k] = new VoxelData(VoxelTypeID.Air);
+                        blocks[i, j, k] = new VoxelData(VoxelTypeID.Empty);
 
                     }
 
@@ -77,7 +77,7 @@ public class POCCubePlanetoid : MonoBehaviour
     {
         if (!IsInRange(pos))
         {
-            return VoxelData.air;
+            return VoxelData.empty;
         }
         return blocks[pos.x, pos.y, pos.z];
     }
@@ -122,7 +122,7 @@ public class POCCubePlanetoid : MonoBehaviour
 
         //Coord2 maStart = meshArrayStarts[thisPos.x, thisPos.y, thisPos.z, thisFaceIdx];
 
-        if (thisData.def.color.a > 0 && neighborData.def.color.a < 255 && (thisPos.y > 0 || faceTemplates[thisFaceIdx].normal.y >= 0))
+        if (thisData.Def.color.a > 0 && neighborData.Def.color.a < 255 && (thisPos.y > 0 || faceTemplates[thisFaceIdx].normal.y >= 0))
         {
             // Draw face
 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum VoxelTypeID : byte
 {
-    Air,
+    Empty,
     Rock,
     Sand,
     Water,
@@ -16,10 +16,10 @@ public class VoxelDef
     private static VoxelDef[] defs;
 
     public VoxelTypeID id;
-    public int weight;
+    //public int weight;
     public Color32 color;
-    public float gravity;
-    public bool isFluid;
+    //public float gravity;
+    //public bool isFluid;
 
     //
     public VoxelDef(VoxelTypeID typeId)
@@ -27,40 +27,40 @@ public class VoxelDef
         //
         {
             this.id = typeId;
-            weight = 0;
+            //weight = 0;
             color = new Color32(255, 0, 255, 255);
-            gravity = 0f;
-            isFluid = false;
+            //gravity = 0f;
+            //isFluid = false;
         }
 
         //
-        if (id == VoxelTypeID.Air)
+        if (id == VoxelTypeID.Empty)
         {
-            weight = 0;
+            //weight = 0;
             color = new Color32(255, 255, 255, 0);
-            gravity = 0f;
+            //gravity = 0f;
         }
 
         if (id == VoxelTypeID.Rock)
         {
-            weight = 100;
+            //weight = 100;
             color = new Color32(172, 172, 172, 255);
-            gravity = 0f;
+            //gravity = 0f;
         }
 
         if (id == VoxelTypeID.Sand)
         {
-            weight = 80;
+            //weight = 80;
             color = new Color32(255, 231, 165, 255);
-            gravity = 1f;
+            //gravity = 1f;
         }
 
         if (id == VoxelTypeID.Water)
         {
-            weight = 100;
+            //weight = 100;
             color = new Color32(0, 0, 200, 255);
-            gravity = 1f;
-            isFluid = true;
+            //gravity = 1f;
+            //isFluid = true;
         }
 
         //
@@ -89,7 +89,7 @@ public class VoxelDef
 
 public struct VoxelData
 {
-    public static readonly VoxelData air = new VoxelData(VoxelTypeID.Air);
+    public static readonly VoxelData empty = new VoxelData(VoxelTypeID.Empty);
 
     public readonly VoxelTypeID id;
 
@@ -100,7 +100,7 @@ public struct VoxelData
     }
 
     //
-    public VoxelDef def
+    public VoxelDef Def
     {
         get
         {

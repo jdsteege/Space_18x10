@@ -4,115 +4,101 @@ using UnityEngine;
 
 public class VoxelContainer : MonoBehaviour
 {
-	
-	public static readonly int sizeXZ = 128;
-	public static readonly int sizeY = 32;
 
-	public MeshManager meshManager;
-	//public TickManager tickManager;
-	public VoxelCaster caster = new VoxelCaster ();
+    public VoxelCaster caster = new VoxelCaster();
 
-	private static readonly Coord3 maxPos = new Coord3 (sizeXZ - 1, sizeY - 1, sizeXZ - 1);
-	private VoxelData[,,] voxels;
-	private bool isLoaded;
+    private ChunkData[,,] chunks;
+    public Coord3 localMaxPos;
+    private bool isLoaded;
 
-	void Awake ()
-	{
-		Init ();
-	}
+    public Coord3 WorldOrigin
+    {
+        get { return new Coord3(transform.position); }
+    }
+    public Coord3 LocalCenter
+    {
+        get { return localMaxPos * 0.5f; }
+    }
 
-	void Init ()
-	{
-		isLoaded = false;
+    private void Start()
+    {
+        Init(new Coord3(4, 4, 4));
+    }
 
-		VoxelDef.InitDefs ();
+    void Init(Coord3 sizeInChunks)
+    {
+        isLoaded = false;
 
-		meshManager.Init ();
-		caster.Init (this);
+        localMaxPos = (sizeInChunks * ChunkData.ChunkWidth) - Coord3.one;
 
-		//
-		voxels = new VoxelData[sizeXZ, sizeY, sizeXZ];
+        caster.Init(this);
 
-		for (int x = 0; x < sizeXZ; x++) {
-			for (int y = 0; y < sizeY; y++) {
-				for (int z = 0; z < sizeXZ; z++) {
+        //
+        chunks = new ChunkData[sizeInChunks.x, sizeInChunks.y, sizeInChunks.z];
+        for (int i = 0; i < chunks.GetLength(0); i++)
+        {
+            for (int j = 0; j < chunks.GetLength(1); j++)
+            {
+                for (int k = 0; k < chunks.GetLength(2); k++)
+                {
+                    GameObject chunkObject = new GameObject("Chunk(" + i + "," + j + "," + k + ")", typeof(ChunkData));
+                    chunkObject.transform.SetParent(this.transform);
 
-					VoxelTypeID newId = VoxelTypeID.Air;
+                    chunkObject.GetComponent<ChunkData>().Init(this, new Coord3(i, j, k));
+                    chunks[i, j, k] = chunkObject.GetComponent<ChunkData>();
+                }
+            }
+        }
 
-					if (y < 2) {
-						newId = VoxelTypeID.Rock;
-					} else if (y < 5) {
-						newId = VoxelTypeID.Sand;
-//					} else if (y < 6 && Random.value < 0.3f) {
-//						newId = VoxelTypeID.Sand;
-					} else {
-						newId = VoxelTypeID.Air;
-					}
+        isLoaded = true;
+    }
 
-					SetVoxelID (new Coord3 (x, y, z), newId);
+    public bool IsInRange(Coord3 localPos)
+    {
+        return localPos.IsInRange(Coord3.zero, localMaxPos);
+    }
 
-				}
-			}
-		}
+    public ChunkData GetChunk(Coord3 localPos)
+    {
+        if (IsInRange(localPos))
+        {
+            return chunks[localPos.x / ChunkData.ChunkWidth, localPos.y / ChunkData.ChunkWidth, localPos.z / ChunkData.ChunkWidth];
+        }
+        else
+        {
+            return null;
+        }
+    }
 
+    public VoxelData GetVoxel(Coord3 localPos)
+    {
+        if (IsInRange(localPos))
+        {
+            return GetChunk(localPos).GetVoxel(localPos);
 
+        }
+        else
+        {
+            return VoxelData.empty;
+        }
+    }
 
-		for (int x = 0; x < sizeXZ; x++) {
-			for (int y = 0; y < sizeY; y++) {
-				for (int z = 0; z < sizeXZ; z++) {
+    public void SetVoxelID(Coord3 localPos, VoxelTypeID id)
+    {
+        VoxelData voxel = new VoxelData(id);
 
-					meshManager.MarkVoxelForRefresh (new Coord3 (x, y, z));
+        SetVoxelData(localPos, voxel);
+    }
 
-				}
-			}
-		}
+    public void SetVoxelData(Coord3 localPos, VoxelData voxel)
+    {
 
-		isLoaded = true;
-	}
+        if (!IsInRange(localPos))
+        {
+            return;
+        }
 
-	public bool IsInRange (Coord3 pos)
-	{
-		return pos.IsInRange (Coord3.zero, maxPos);
-	}
-
-	public VoxelData GetVoxel (Coord3 pos)
-	{
-		if (IsInRange (pos)) {
-			return voxels [pos.x, pos.y, pos.z];
-			
-		} else {
-			return VoxelData.air;
-		}
-	}
-
-	public void SetVoxelID (Coord3 pos, VoxelTypeID id)
-	{
-		VoxelData voxel = new VoxelData (id);
-
-		SetVoxelData (pos, voxel);
-	}
-
-	public void SetVoxelData (Coord3 pos, VoxelData voxel)
-	{
-
-		if (!IsInRange (pos)) {
-			return;
-		}
-		if (voxels [pos.x, pos.y, pos.z].id == voxel.id) {
-			return;
-		}
-
-//		VoxelData oldData = voxels [pos.x, pos.y, pos.z];
-		voxels [pos.x, pos.y, pos.z] = voxel;
-
-		if (!isLoaded) {
-			return;
-		}
-
-		//tickManager.OnVoxelChange (pos);
-
-		meshManager.MarkVoxelForRefresh (pos);
-		
-	}
+        GetChunk(localPos).SetVoxelData(localPos, voxel);
+    }
 
 }

@@ -92,7 +92,7 @@ public class VoxelCaster
 
 			}
 
-			if (world.GetVoxel (curPos).def.color.a > 0) {
+			if (world.GetVoxel (curPos).Def.color.a > 0) {
 				result.didHit = true;
 				result.voxelPos = curPos;
 				result.faceNeighbor = prevPos;
