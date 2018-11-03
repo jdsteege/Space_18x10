@@ -123,9 +123,11 @@ public class ChunkData : MonoBehaviour
 
         VoxelTypeID result = VoxelTypeID.Empty;
 
-        if (Coord3.Distance(voxelContainer.LocalCenter, localPos) < ((voxelContainer.localMaxPos.x / 2f) - 1))
-        {
-            result = VoxelTypeID.Rock;
+        //if (Coord3.Distance(voxelContainer.LocalCenter, localPos) < ((voxelContainer.localMaxPos.x / 2f) - 1))
+            if (Coord3.SquareDistance(voxelContainer.LocalCenter, localPos) < ((voxelContainer.localMaxPos.x / 2f) - 1))
+            //if (Coord3.TaxiDistance(voxelContainer.LocalCenter, localPos) < ((voxelContainer.localMaxPos.x / 2f) - 1))
+            {
+            result = VoxelTypeID.Sand;
         }
 
         return result;

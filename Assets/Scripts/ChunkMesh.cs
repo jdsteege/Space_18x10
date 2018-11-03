@@ -14,6 +14,7 @@ public class ChunkMesh : MonoBehaviour
     private Mesh mesh;
     private ChunkData dataController;
 
+    // TODO: combine mesh data into meshes as large as possible.
     // TODO: when drawing natural chunk, dont need to store all this data.
     //
     private List<Vector3> vertices = new List<Vector3>();
@@ -185,9 +186,14 @@ public class ChunkMesh : MonoBehaviour
 
         int maStart = meshArrayStarts[thisChunkPos.x, thisChunkPos.y, thisChunkPos.z, thisFaceIdx];
 
-        if (thisData.Def.color.a > 0 && neighborData.Def.color.a < 255 && (thisChunkPos.y > 0 || faceTemplates[thisFaceIdx].normal.y >= 0))
+        if (thisData.Def.color.a > 0 && neighborData.Def.color.a < 255)
         {
             // Draw face
+
+            if (dataController.chunkId == new Coord3(5, 1, 1))
+            {
+                int a = 0; a += 1;
+            }
 
             FaceTemplate curFace = faceTemplates[thisFaceIdx];
 
@@ -278,10 +284,10 @@ public class ChunkMesh : MonoBehaviour
     //
     private class FaceTemplate
     {
-        public Vector3 normal;
+        public Coord3 normal;
         public Vector3[] vertices;
         //
-        public FaceTemplate(Vector3 nrml, params Vector3[] vrts)
+        public FaceTemplate(Coord3 nrml, params Vector3[] vrts)
         {
             this.normal = nrml;
             this.vertices = vrts;
@@ -289,12 +295,12 @@ public class ChunkMesh : MonoBehaviour
     }
 
     private FaceTemplate[] faceTemplates = new FaceTemplate[] {
-        new FaceTemplate (new Vector3 (-1, 0, 0), new Vector3 (0, 0, 0), new Vector3 (0, 0, 1), new Vector3 (0, 1, 1), new Vector3 (0, 1, 0)), // Left
-		new FaceTemplate (new Vector3 (+1, 0, 0), new Vector3 (1, 0, 0), new Vector3 (1, 1, 0), new Vector3 (1, 1, 1), new Vector3 (1, 0, 1)), // Right
-		new FaceTemplate (new Vector3 (0, -1, 0), new Vector3 (0, 0, 0), new Vector3 (1, 0, 0), new Vector3 (1, 0, 1), new Vector3 (0, 0, 1)), // Bottom
-		new FaceTemplate (new Vector3 (0, +1, 0), new Vector3 (0, 1, 0), new Vector3 (0, 1, 1), new Vector3 (1, 1, 1), new Vector3 (1, 1, 0)), // Top
-		new FaceTemplate (new Vector3 (0, 0, -1), new Vector3 (0, 0, 0), new Vector3 (0, 1, 0), new Vector3 (1, 1, 0), new Vector3 (1, 0, 0)), // Front
-		new FaceTemplate (new Vector3 (0, 0, +1), new Vector3 (0, 0, 1), new Vector3 (1, 0, 1), new Vector3 (1, 1, 1), new Vector3 (0, 1, 1)), // Back
+        new FaceTemplate (new Coord3 (-1, 0, 0), new Vector3 (0, 0, 0), new Vector3 (0, 0, 1), new Vector3 (0, 1, 1), new Vector3 (0, 1, 0)), // Left
+		new FaceTemplate (new Coord3 (+1, 0, 0), new Vector3 (1, 0, 0), new Vector3 (1, 1, 0), new Vector3 (1, 1, 1), new Vector3 (1, 0, 1)), // Right
+		new FaceTemplate (new Coord3 (0, -1, 0), new Vector3 (0, 0, 0), new Vector3 (1, 0, 0), new Vector3 (1, 0, 1), new Vector3 (0, 0, 1)), // Bottom
+		new FaceTemplate (new Coord3 (0, +1, 0), new Vector3 (0, 1, 0), new Vector3 (0, 1, 1), new Vector3 (1, 1, 1), new Vector3 (1, 1, 0)), // Top
+		new FaceTemplate (new Coord3 (0, 0, -1), new Vector3 (0, 0, 0), new Vector3 (0, 1, 0), new Vector3 (1, 1, 0), new Vector3 (1, 0, 0)), // Front
+		new FaceTemplate (new Coord3 (0, 0, +1), new Vector3 (0, 0, 1), new Vector3 (1, 0, 1), new Vector3 (1, 1, 1), new Vector3 (0, 1, 1)), // Back
 	};
 
 }
